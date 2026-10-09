@@ -1,0 +1,92 @@
+.mascot-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 45vh; /* 45% of screen height */
+  position: relative;
+}
+
+.mascot-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 300px;
+  max-height: 300px;
+  filter: drop-shadow(0 20px 40px rgba(120, 90, 200, 0.15));
+  transition: all 0.5s ease-in-out;
+}
+
+/* 
+ * Smooth Animations
+ */
+.mascot-state-idle .mascot-body {
+  animation: floatSmooth 6s ease-in-out infinite;
+}
+
+.mascot-state-idle .mascot-ear-left {
+  animation: earSwayLeft 8s ease-in-out infinite;
+  transform-origin: 30% 30%;
+}
+
+.mascot-state-idle .mascot-ear-right {
+  animation: earSwayRight 8s ease-in-out infinite 0.5s;
+  transform-origin: 70% 30%;
+}
+
+.mascot-state-listening .mascot-body {
+  animation: floatSmooth 4s ease-in-out infinite;
+}
+
+.mascot-state-listening .mascot-ear-left {
+  transform: rotate(10deg);
+  transform-origin: 30% 30%;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mascot-state-listening .mascot-ear-right {
+  transform: rotate(-10deg);
+  transform-origin: 70% 30%;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mascot-state-thinking .mascot-body {
+  transform: scale(0.98);
+  animation: floatSmooth 3s ease-in-out infinite;
+}
+
+.mascot-state-talking .mascot-body {
+  animation: floatTalk 4s ease-in-out infinite;
+}
+
+/* Keyframes */
+@keyframes floatSmooth {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes earSwayLeft {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(4deg); }
+}
+
+@keyframes earSwayRight {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-4deg); }
+}
+
+@keyframes floatTalk {
+  0%, 100% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-5px) scale(1.01, 0.99); }
+  75% { transform: translateY(-10px) scale(0.99, 1.01); }
+}
+
+.thinking-dot {
+  animation: dotFade 1.5s infinite both;
+}
+.thinking-dot:nth-child(2) { animation-delay: 0.3s; }
+.thinking-dot:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes dotFade {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
+}

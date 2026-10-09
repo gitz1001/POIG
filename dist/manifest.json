@@ -1,0 +1,16 @@
+{
+  "name": "Emoh",
+  "short_name": "Emoh",
+  "description": "A safe space for your mind. Meet your local buddy, Emoh",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F4F0F8",
+  "theme_color": "#F4F0F8",
+  "icons": [
+    {
+      "src": "/emoh-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

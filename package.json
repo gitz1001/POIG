@@ -1,0 +1,33 @@
+{
+  "name": "emoh",
+  "version": "1.0.0",
+  "description": "Emoh — A safe space for your mind. Privacy-first buddy app powered by local AI.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "local-ai",
+    "pwa",
+    "mental-health",
+    "privacy",
+    "offline"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.1",
+    "@mlc-ai/web-llm": "^0.2.85",
+    "@vitejs/plugin-react": "^6.1.2",
+    "dexie": "^4.4.6",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4",
+    "vite": "^8.3.4"
+  },
+  "devDependencies": {
+    "vite-plugin-pwa": "^2.0.0"
+  }
+}

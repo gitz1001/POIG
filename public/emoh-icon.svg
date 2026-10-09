@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bodyGrad" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="100%" stopColor="#E6E0F0" />
+    </radialGradient>
+    <radialGradient id="blushGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="rgba(249, 168, 212, 0.6)" />
+      <stop offset="100%" stopColor="rgba(249, 168, 212, 0)" />
+    </radialGradient>
+  </defs>
+
+  <rect width="200" height="200" fill="#F4F0F8" />
+  
+  <g transform="scale(0.8) translate(25, 25)">
+    <!-- Ears -->
+    <path d="M 60 70 Q 20 50 30 110 Q 35 130 55 100 Z" fill="url(#bodyGrad)" />
+    <path d="M 140 70 Q 180 50 170 110 Q 165 130 145 100 Z" fill="url(#bodyGrad)" />
+
+    <!-- Body -->
+    <circle cx="100" cy="110" r="60" fill="url(#bodyGrad)" />
+
+    <!-- Blush -->
+    <circle cx="60" cy="120" r="15" fill="url(#blushGrad)" />
+    <circle cx="140" cy="120" r="15" fill="url(#blushGrad)" />
+
+    <!-- Eyes & Mouth -->
+    <circle cx="75" cy="110" r="8" fill="#1E1B2E" />
+    <circle cx="125" cy="110" r="8" fill="#1E1B2E" />
+    <circle cx="72" cy="107" r="2.5" fill="#FFFFFF" />
+    <circle cx="122" cy="107" r="2.5" fill="#FFFFFF" />
+    <path d="M 95 125 Q 100 128 105 125" fill="none" stroke="#1E1B2E" strokeWidth="3" strokeLinecap="round" />
+  </g>
+</svg>
