@@ -117,3 +117,11 @@ export const ThumbDownIcon = (props: IconProps) => (
     <path d="M10 22l3-7h1v0h3V4H6.8a2 2 0 0 0-2 1.7l-1.4 8A2 2 0 0 0 5.4 15H10" />
   </BaseIcon>
 );
+
+export const ImageIcon = (props: IconProps) => (
+  <BaseIcon {...props}>
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    <circle cx="8.5" cy="8.5" r="1.5" />
+    <polyline points="21 15 16 10 5 21" />
+  </BaseIcon>
+);

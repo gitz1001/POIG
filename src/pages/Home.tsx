@@ -9,7 +9,7 @@ import { saveProfile } from '../db';
 import { updateFeedback } from '../db';
 import { SAFETY_RESOURCES } from '../services/safety';
 import type { UserProfile, ChatMessage } from '../types';
-import { SettingsIcon, MicIcon, SendIcon, ThumbUpIcon, ThumbDownIcon } from '../components/Icons';
+import { SettingsIcon, MicIcon, SendIcon, ThumbUpIcon, ThumbDownIcon, ImageIcon } from '../components/Icons';
 
 interface HomeProps {
   profile: UserProfile;
@@ -27,10 +27,12 @@ const JOURNAL_PROMPTS = [
 
 export default function Home({ profile }: HomeProps) {
   const [inputText, setInputText] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [rantMode, setRantMode] = useState(profile.rantMode);
   const [dailyPrompt, setDailyPrompt] = useState('');
   const navigate = useNavigate();
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { messages, mascotState, sendMessage, isDeviceLost, setIsDeviceLost } = useChat(profile);
   const { progress, isComplete, loadAll } = useModelLoader();
@@ -54,9 +56,22 @@ export default function Home({ profile }: HomeProps) {
   }, [messages]);
 
   const handleSend = () => {
-    if (!inputText.trim() || !isComplete || mascotState !== 'idle' || isDeviceLost) return;
-    sendMessage(inputText);
+    if ((!inputText.trim() && !selectedImage) || !isComplete || mascotState !== 'idle' || isDeviceLost) return;
+    sendMessage(inputText, selectedImage || undefined);
     setInputText('');
+    setSelectedImage(null);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSelectedImage(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = ''; // reset
   };
 
   const handleMicToggle = async () => {
@@ -199,6 +214,13 @@ export default function Home({ profile }: HomeProps) {
 
               {messages.map((msg) => (
                 <div key={msg.id} className={`chat-bubble ${msg.role === 'user' ? 'user' : 'emoh'}`}>
+                  {msg.image && (
+                    <img 
+                      src={msg.image} 
+                      alt="Attached" 
+                      style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: msg.text ? '8px' : 0 }} 
+                    />
+                  )}
                   {msg.text || (msg.role === 'emoh' ? '...' : '')}
                   
                   {/* Bible verses — Task 2.2 */}
@@ -259,7 +281,22 @@ export default function Home({ profile }: HomeProps) {
           <button className={!rantMode ? 'on' : ''} onClick={() => toggleRantMode(false)}>Help me</button>
         </div>
         
-        <div className="glass inputbar">
+        <div className="glass inputbar" style={{ flexWrap: 'wrap' }}>
+          {selectedImage && (
+            <div style={{ width: '100%', padding: '0 8px 8px', position: 'relative' }}>
+              <img 
+                src={selectedImage} 
+                alt="Preview" 
+                style={{ height: '60px', borderRadius: '8px', objectFit: 'cover' }} 
+              />
+              <button 
+                onClick={() => setSelectedImage(null)}
+                style={{ position: 'absolute', top: '-4px', left: '60px', background: '#ff4444', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                ×
+              </button>
+            </div>
+          )}
           <input 
             placeholder={isEngineLoading ? "Loading..." : isTranscribing ? "Transcribing..." : "Rant to me…"}
             value={inputText}
@@ -267,6 +304,24 @@ export default function Home({ profile }: HomeProps) {
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             disabled={mascotState !== 'idle' || isEngineLoading || isTranscribing}
           />
+          
+          <input 
+            type="file" 
+            accept="image/*" 
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleImageUpload}
+          />
+          
+          <button 
+            className="mic" 
+            disabled={isEngineLoading || isTranscribing || mascotState !== 'idle'}
+            onClick={() => fileInputRef.current?.click()}
+            title="Attach Image"
+          >
+            <ImageIcon size={20} />
+          </button>
+
           <button 
             className={`mic ${isRecording ? 'listening' : ''}`} 
             disabled={isEngineLoading || !isWhisperReady() || isTranscribing}
@@ -275,7 +330,7 @@ export default function Home({ profile }: HomeProps) {
           >
             <MicIcon size={20} />
           </button>
-          <button className="send" onClick={handleSend} disabled={!inputText.trim() || mascotState !== 'idle' || isEngineLoading}>
+          <button className="send" onClick={handleSend} disabled={(!inputText.trim() && !selectedImage) || mascotState !== 'idle' || isEngineLoading}>
             <SendIcon size={18} />
           </button>
         </div>

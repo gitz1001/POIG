@@ -22,6 +22,7 @@ export interface JournalEntry {
   themes: string[];         // LLM-extracted themes
   embedding: number[];      // 384-dim MiniLM embedding of userText
   feedbackScore: number;    // +1 thumbs up, -1 thumbs down, 0 = no feedback
+  image?: string;           // Base64 image attachment
 }
 
 /** Bible verse from /public/bible.json */
@@ -56,6 +57,7 @@ export interface ChatMessage {
   text: string;
   timestamp: number;
   feedbackScore?: number;
+  image?: string;
   bibleVerses?: BibleVerse[];
   isSafetyResponse?: boolean;
 }

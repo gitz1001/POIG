@@ -15,9 +15,9 @@ export function useChat(profile: UserProfile | null) {
   const messagesRef = useRef<ChatMessage[]>(messages);
   messagesRef.current = messages;
   
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, image?: string) => {
     if (!profile) return;
-    if (!text.trim()) return;
+    if (!text.trim() && !image) return;
 
     const userMsgId = Date.now().toString();
     const userMsg: ChatMessage = {
@@ -25,6 +25,7 @@ export function useChat(profile: UserProfile | null) {
       role: 'user',
       text,
       timestamp: Date.now(),
+      image,
     };
     setMessages(prev => [...prev, userMsg]);
     setMascotState('thinking');
@@ -53,9 +54,12 @@ export function useChat(profile: UserProfile | null) {
         getMoodContext(5)
       ]);
 
+      // Conditionally fetch Bible verses (10% chance or if requested)
+      const shouldFetchBible = Math.random() < 0.1 || text.toLowerCase().includes('bible') || text.toLowerCase().includes('verse');
+      
       const [relevantMemories, bibleVerses] = await Promise.all([
         getRelevantMemories(queryEmbedding, 2), // top 2 memories
-        Promise.resolve(getTopBibleVerses(queryEmbedding, 2))
+        shouldFetchBible ? Promise.resolve(getTopBibleVerses(queryEmbedding, 2)) : Promise.resolve([])
       ]);
 
       const moodTrend = analyzeMoodTrend(recentMoods);
@@ -110,7 +114,8 @@ export function useChat(profile: UserProfile | null) {
             mood: extraction.mood || 'neutral',
             themes: extraction.themes || [],
             embedding: queryEmbedding,
-            feedbackScore: 0
+            feedbackScore: 0,
+            image
           });
         } catch (e) {
           console.error("Failed to parse memory extraction", e);

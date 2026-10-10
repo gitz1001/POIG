@@ -71,6 +71,7 @@ export default function Onboarding({ profile }: OnboardingProps) {
                   type="text" 
                   className="input-field" 
                   placeholder="Your name" 
+                  autoFocus
                   value={name} 
                   onChange={e => setName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleNext()}
@@ -94,6 +95,7 @@ export default function Onboarding({ profile }: OnboardingProps) {
                 type="password" 
                 className="input-field" 
                 style={{ fontSize: '24px', letterSpacing: '12px' }}
+                autoFocus
                 maxLength={4}
                 placeholder="••••" 
                 value={pin} 
