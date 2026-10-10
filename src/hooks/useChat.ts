@@ -68,7 +68,7 @@ export function useChat(profile: UserProfile | null) {
       );
 
       // Append last 6 messages
-      const historyMsg = messages.slice(-6);
+      const historyMsg = messagesRef.current.slice(-6);
       if (historyMsg.length > 0) {
         const historyText = historyMsg.map(m => `${m.role === 'user' ? profile.name : 'Emoh'}: ${m.text}`).join('\n');
         systemPrompt += `\n\nRecent History:\n${historyText}`;
