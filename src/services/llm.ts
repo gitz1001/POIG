@@ -47,10 +47,9 @@ export async function initLLM(
     try {
       const modelId = await getModelId();
       const engine = await CreateMLCEngine(modelId, {
-        initProgressCallback: onProgress,
-        chatOpts: {
-          context_window_size: 2048
-        }
+        initProgressCallback: onProgress
+      }, {
+        context_window_size: 2048
       });
       globalThis.__emohEngine = engine;
       return engine;

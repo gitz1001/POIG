@@ -33,7 +33,7 @@ export default function Settings() {
   useEffect(() => {
     async function load() {
       const p = await getProfile();
-      setProfile(p);
+      setProfile(p || null);
       const entries = await getAllEntries();
       setEntryCount(entries.length);
 

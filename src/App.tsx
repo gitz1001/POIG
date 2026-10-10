@@ -53,7 +53,7 @@ export default function App() {
             path="/settings" 
             element={
               profile?.onboardingComplete 
-                ? <Settings profile={profile} /> 
+                ? <Settings /> 
                 : <Navigate to="/onboarding" replace />
             } 
           />
