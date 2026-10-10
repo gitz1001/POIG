@@ -214,10 +214,14 @@ async function freeChatCompletion(
   
   const text = wasmTextGen.tokenizer.apply_chat_template(messages, { tokenize: false, add_generation_prompt: true });
   
-  const out = await wasmTextGen(text, { max_new_tokens: 150, temperature: 0.7, do_sample: true });
+  const out = await wasmTextGen(text, { 
+    max_new_tokens: 150, 
+    temperature: 0.7, 
+    do_sample: true,
+    return_full_text: false 
+  });
   
-  // The output includes the prompt, so we slice it off
-  let generated = out[0].generated_text.substring(text.length).replace(/<\|im_end\|>/g, '').trim();
+  let generated = out[0].generated_text.replace(/<\|im_end\|>/g, '').trim();
   
   if (onChunk) onChunk(generated);
   return generated;
@@ -232,9 +236,13 @@ async function freeExtractMemory(userText: string, emohReply: string): Promise<s
   ];
   
   const text = wasmTextGen.tokenizer.apply_chat_template(messages, { tokenize: false, add_generation_prompt: true });
-  const out = await wasmTextGen(text, { max_new_tokens: 100, temperature: 0.1 });
+  const out = await wasmTextGen(text, { 
+    max_new_tokens: 100, 
+    temperature: 0.1,
+    return_full_text: false 
+  });
   
-  let generated = out[0].generated_text.substring(text.length).replace(/<\|im_end\|>/g, '').trim();
+  let generated = out[0].generated_text.replace(/<\|im_end\|>/g, '').trim();
   
   const jsonMatch = generated.match(/\{[\s\S]*\}/);
   return jsonMatch ? jsonMatch[0] : '{}';
