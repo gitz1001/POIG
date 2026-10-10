@@ -187,7 +187,7 @@ Do not include any other text.`,
    Used when WebGPU is not available (e.g. some Windows PCs)
    ============================================================ */
 
-import { pipeline } from '@xenova/transformers';
+import { pipeline } from '@huggingface/transformers';
 
 let wasmTextGen: any = null;
 
