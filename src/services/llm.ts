@@ -183,81 +183,59 @@ Do not include any other text.`,
 }
 
 /* ============================================================
-   Cloud Fallback Methods (Free Sample API)
+   100% Local CPU Fallback (WASM) 
+   Used when WebGPU is not available (e.g. some Windows PCs)
    ============================================================ */
+
+import { pipeline } from '@xenova/transformers';
+
+let wasmTextGen: any = null;
+
+async function initWasmModel(onChunk?: (text: string) => void) {
+  if (!wasmTextGen) {
+    if (onChunk) onChunk("[Initializing 100% Local CPU AI... please wait]\n");
+    wasmTextGen = await pipeline('text-generation', 'Xenova/SmolLM-135M-Instruct');
+  }
+}
 
 async function freeChatCompletion(
   systemPrompt: string,
   userMessage: string,
   onChunk?: (partialText: string) => void
 ): Promise<string> {
-  const url = `https://text.pollinations.ai/openai/v1/chat/completions`;
+  await initWasmModel(onChunk);
   
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage }
-      ],
-      stream: !!onChunk,
-      model: 'openai'
-    })
-  });
-
-  if (!response.ok) throw new Error('Free API error: ' + response.statusText);
-
-  if (!onChunk) {
-    const data = await response.json();
-    return data.choices[0]?.message?.content || '';
-  }
-
-  const reader = response.body?.getReader();
-  const decoder = new TextDecoder('utf-8');
-  let fullText = '';
-
-  if (reader) {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
-      for (const line of lines) {
-        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-          try {
-            const data = JSON.parse(line.slice(6));
-            const delta = data.choices?.[0]?.delta?.content || '';
-            fullText += delta;
-            onChunk(fullText);
-          } catch (e) {}
-        }
-      }
-    }
-  }
-
-  return fullText;
+  if (onChunk) onChunk("[CPU Local AI is thinking...]\n");
+  
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userMessage }
+  ];
+  
+  const text = wasmTextGen.tokenizer.apply_chat_template(messages, { tokenize: false, add_generation_prompt: true });
+  
+  const out = await wasmTextGen(text, { max_new_tokens: 150, temperature: 0.7, do_sample: true });
+  
+  // The output includes the prompt, so we slice it off
+  let generated = out[0].generated_text.substring(text.length).replace(/<\|im_end\|>/g, '').trim();
+  
+  if (onChunk) onChunk(generated);
+  return generated;
 }
 
 async function freeExtractMemory(userText: string, emohReply: string): Promise<string> {
-  const url = `https://text.pollinations.ai/openai/v1/chat/completions`;
+  await initWasmModel();
   
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      messages: [
-        { role: 'system', content: "You are a journal analysis assistant. Given a user's message and a buddy's reply, extract structured data. Respond with ONLY valid JSON in this exact format: {\"summary\": \"one sentence summary of what the user shared\", \"mood\": \"one of: happy, sad, anxious, calm, angry, neutral\", \"themes\": [\"theme1\", \"theme2\"]} Do not include any other text or markdown blocks." },
-        { role: 'user', content: `User said: "${userText}"\nBuddy replied: "${emohReply}"` }
-      ],
-      stream: false,
-      model: 'openai',
-      response_format: { type: "json_object" }
-    })
-  });
+  const messages = [
+    { role: 'system', content: "Extract data as JSON: {\"summary\": \"...\", \"mood\": \"happy\", \"themes\": [\"x\"]}" },
+    { role: 'user', content: `User: "${userText}"\nBuddy: "${emohReply}"` }
+  ];
   
-  const data = await response.json();
-  let text = data.choices?.[0]?.message?.content || '{}';
-  text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-  return text;
+  const text = wasmTextGen.tokenizer.apply_chat_template(messages, { tokenize: false, add_generation_prompt: true });
+  const out = await wasmTextGen(text, { max_new_tokens: 100, temperature: 0.1 });
+  
+  let generated = out[0].generated_text.substring(text.length).replace(/<\|im_end\|>/g, '').trim();
+  
+  const jsonMatch = generated.match(/\{[\s\S]*\}/);
+  return jsonMatch ? jsonMatch[0] : '{}';
 }
