@@ -60,5 +60,5 @@ export async function embedText(text: string): Promise<number[]> {
   
   // The output is a Tensor. We convert its data to a standard JS array.
   // Shape is [1, 384]
-  return Array.from(output.data);
+  return Array.from(output.data as Float32Array);
 }

@@ -41,7 +41,7 @@ Only the **initial model download** (approx. 1GB) during the onboarding process.
 After the initial setup, **there are zero external network calls. No analytics. No telemetry.**
 
 ## 🧠 Models Used
-- **LLM**: `Qwen2.5-1.5B-Instruct` (Quantized to q4f16_1 for Web-LLM)
+- **LLM**: `Qwen2.5-0.5B-Instruct` (Quantized to q4f16_1 / q4f32_1 for Web-LLM)
 - **Embeddings**: `Xenova/all-MiniLM-L6-v2` (transformers.js)
 - **STT**: `Xenova/whisper-tiny` (transformers.js)
 

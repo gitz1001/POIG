@@ -2,7 +2,10 @@
    Whisper STT Service — local speech-to-text via transformers.js
    ============================================================ */
 
-import { pipeline, type AutomaticSpeechRecognitionPipeline } from '@huggingface/transformers';
+import { pipeline, env, type AutomaticSpeechRecognitionPipeline } from '@huggingface/transformers';
+
+// Match embeddings.ts: use Hugging Face Hub (remote download) then cache
+env.allowLocalModels = false;
 
 const MODEL_ID = 'Xenova/whisper-tiny';
 

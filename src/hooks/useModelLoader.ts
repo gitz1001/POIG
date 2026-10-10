@@ -7,7 +7,7 @@ import type { ModelProgress } from '../types';
 
 export function useModelLoader() {
   const [progress, setProgress] = useState<ModelProgress[]>([
-    { modelName: 'Qwen2.5-1.5B (Brain)', progress: 0, status: 'pending' },
+    { modelName: 'Qwen2.5-0.5B (Brain)', progress: 0, status: 'pending' },
     { modelName: 'MiniLM (Memory)', progress: 0, status: 'pending' },
     { modelName: 'Whisper-tiny (Ears)', progress: 0, status: 'pending' },
     { modelName: 'Bible Data', progress: 0, status: 'pending' },

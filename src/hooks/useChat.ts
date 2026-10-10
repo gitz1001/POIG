@@ -126,7 +126,7 @@ export function useChat(profile: UserProfile | null) {
       }
     }
 
-  }, [profile, messages]);
+  }, [profile]);
 
   return { messages, mascotState, setMascotState, sendMessage, isDeviceLost, setIsDeviceLost };
 }
