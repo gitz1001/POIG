@@ -194,7 +194,7 @@ let wasmTextGen: any = null;
 async function initWasmModel(onChunk?: (text: string) => void) {
   if (!wasmTextGen) {
     if (onChunk) onChunk("[Initializing 100% Local CPU AI... please wait]\n");
-    wasmTextGen = await pipeline('text-generation', 'Xenova/SmolLM-135M-Instruct');
+    wasmTextGen = await pipeline('text-generation', 'Xenova/Qwen1.5-0.5B-Chat');
   }
 }
 
