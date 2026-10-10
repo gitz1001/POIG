@@ -11,9 +11,20 @@ interface HomeProps {
   profile: UserProfile;
 }
 
+const JOURNAL_PROMPTS = [
+  "What's on your mind?",
+  "What's something small that made you smile today?",
+  "How is your heart feeling today?",
+  "What's a thought you can't seem to shake off right now?",
+  "Did anything surprise you today?",
+  "What are you looking forward to tomorrow?",
+  "Write about a moment today when you felt at peace."
+];
+
 export default function Home({ profile }: HomeProps) {
   const [inputText, setInputText] = useState('');
   const [rantMode, setRantMode] = useState(profile.rantMode);
+  const [dailyPrompt, setDailyPrompt] = useState('');
   const navigate = useNavigate();
   
   const { messages, mascotState, sendMessage, isDeviceLost, setIsDeviceLost } = useChat(profile);
@@ -24,6 +35,10 @@ export default function Home({ profile }: HomeProps) {
       loadAll();
     }
   }, [isComplete, loadAll]);
+
+  useEffect(() => {
+    setDailyPrompt(JOURNAL_PROMPTS[Math.floor(Math.random() * JOURNAL_PROMPTS.length)]);
+  }, []);
 
   const handleSend = () => {
     if (!inputText.trim() || !isComplete || mascotState !== 'idle' || isDeviceLost) return;
@@ -112,7 +127,7 @@ export default function Home({ profile }: HomeProps) {
             ) : latestEmohMessage ? (
               latestEmohMessage.text
             ) : (
-              `Hi ${profile.name}! I'm Emoh. What's on your mind?`
+              `Hi ${profile.name}! I'm Emoh. ${dailyPrompt}`
             )}
           </div>
         </div>

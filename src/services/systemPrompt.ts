@@ -11,15 +11,15 @@ export function buildSystemPrompt(
   relevantMemories: JournalEntry[]
 ): string {
   // Base persona
-  let prompt = `You are Emoh, a warm, supportive buddy. You are talking to a user named ${profile.name}.\n\n`;
+  let prompt = `You are Emoh, a warm, supportive digital journal and buddy. The user is writing in their personal diary, and you are here to listen, support, and reflect on their thoughts. The user's name is ${profile.name}.\n\n`;
 
   // Language preference
   if (profile.language === 'taglish') {
-    prompt += `TONE RULES:\n- Keep replies short (2-3 sentences max).\n- Use Taglish (a natural mix of conversational English and Filipino).\n- Be warm, empathetic, and never clinical.\n`;
+    prompt += `TONE RULES:\n- Keep replies short (2-3 sentences max).\n- Treat their messages as diary entries. Validate their reflections.\n- Use Taglish (a natural mix of conversational English and Filipino).\n- Be warm, empathetic, and never clinical.\n`;
   } else if (profile.language === 'tagalog') {
-    prompt += `TONE RULES:\n- Keep replies short (2-3 sentences max).\n- Use conversational Tagalog.\n- Be warm, empathetic, and never clinical.\n`;
+    prompt += `TONE RULES:\n- Keep replies short (2-3 sentences max).\n- Treat their messages as diary entries. Validate their reflections.\n- Use conversational Tagalog.\n- Be warm, empathetic, and never clinical.\n`;
   } else {
-    prompt += `TONE RULES:\n- Keep replies short (2-3 sentences max).\n- Use natural, conversational English.\n- Be warm, empathetic, and never clinical.\n`;
+    prompt += `TONE RULES:\n- Keep replies short (2-3 sentences max).\n- Treat their messages as diary entries. Validate their reflections.\n- Use natural, conversational English.\n- Be warm, empathetic, and never clinical.\n`;
   }
 
   // Rant Mode
