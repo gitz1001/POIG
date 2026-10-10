@@ -8,6 +8,7 @@ const Onboarding = React.lazy(() => import('./pages/Onboarding'));
 const Home = React.lazy(() => import('./pages/Home'));
 const Journal = React.lazy(() => import('./pages/Journal'));
 const Settings = React.lazy(() => import('./pages/Settings'));
+const Legal = React.lazy(() => import('./pages/Legal'));
 
 export default function App() {
   const { profile, isLoading } = usePreferences();
@@ -58,6 +59,10 @@ export default function App() {
                   ? <Settings /> 
                   : <Navigate to="/onboarding" replace />
               } 
+            />
+            <Route 
+              path="/legal" 
+              element={<Legal />} 
             />
           </Routes>
         </React.Suspense>

@@ -353,6 +353,9 @@ export default function Settings() {
                 {navigator.onLine ? 'Online' : 'Offline'}
               </span>
             </div>
+            <button className="btn btn-secondary mt-2" style={{ padding: '8px' }} onClick={() => navigate('/legal')}>
+              View Privacy Policy & TOS
+            </button>
           </div>
 
           {/* Brain status */}

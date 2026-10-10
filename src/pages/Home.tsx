@@ -114,7 +114,7 @@ export default function Home({ profile }: HomeProps) {
         <div className="blob c"></div>
       </div>
       
-      <div className="app">
+      <div className="app" style={{ overflow: 'hidden' }}>
         <div className="topbar">
           <div className="glass pill"><span className="dot"></span>Offline · Local only</div>
           <button className="glass pill" onClick={() => navigate('/settings')}>
@@ -122,7 +122,7 @@ export default function Home({ profile }: HomeProps) {
           </button>
         </div>
         
-        <div className="stage">
+        <div className="stage" style={{ minHeight: 0 }}>
           {/* Mascot — smaller when chat is active */}
           <svg 
             className={`emoh ${mascotState !== 'idle' ? mascotState : ''}`} 

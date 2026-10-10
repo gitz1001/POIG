@@ -21,7 +21,8 @@ export default defineConfig({
     exclude: ['@huggingface/transformers'],
   },
   build: {
-    target: 'es2020'
+    target: 'es2020',
+    sourcemap: false
   },
   // Enable top-level await for WASM modules
   esbuild: {
