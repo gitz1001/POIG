@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { chatCompletion, extractMemory } from '../services/llm';
 import { embedText } from '../services/embeddings';
 import { getTopBibleVerses } from '../services/bible';
@@ -12,6 +12,8 @@ export function useChat(profile: UserProfile | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [mascotState, setMascotState] = useState<MascotState>('idle');
   const [isDeviceLost, setIsDeviceLost] = useState(false);
+  const messagesRef = useRef<ChatMessage[]>(messages);
+  messagesRef.current = messages;
   
   const sendMessage = useCallback(async (text: string) => {
     if (!profile) return;
