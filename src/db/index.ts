@@ -57,6 +57,13 @@ export async function getAllEntries(): Promise<JournalEntry[]> {
 }
 
 /**
+ * Clear all journal entries while keeping the profile intact.
+ */
+export async function clearAllEntries(): Promise<void> {
+  await db.entries.clear();
+}
+
+/**
  * Get the N most recent entries (for mood context).
  */
 export async function getRecentEntries(count: number): Promise<JournalEntry[]> {

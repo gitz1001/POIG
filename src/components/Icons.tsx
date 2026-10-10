@@ -103,3 +103,17 @@ export const CheckIcon = (props: IconProps) => (
     <polyline points="20 6 9 17 4 12" />
   </BaseIcon>
 );
+
+export const ThumbUpIcon = (props: IconProps) => (
+  <BaseIcon {...props}>
+    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+    <path d="M14 2l-3 7h-1v0H7v11h10.2a2 2 0 0 0 2-1.7l1.4-8A2 2 0 0 0 18.6 9H14" />
+  </BaseIcon>
+);
+
+export const ThumbDownIcon = (props: IconProps) => (
+  <BaseIcon {...props}>
+    <path d="M17 2H20a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3" />
+    <path d="M10 22l3-7h1v0h3V4H6.8a2 2 0 0 0-2 1.7l-1.4 8A2 2 0 0 0 5.4 15H10" />
+  </BaseIcon>
+);

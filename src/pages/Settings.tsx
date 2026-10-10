@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProfile, saveProfile, getAllEntries } from '../db';
+import { getProfile, saveProfile, getAllEntries, clearAllEntries, exportAllData, importAllData } from '../db';
 import { initLLM, unloadLLM } from '../services/llm';
 import { initEmbeddings } from '../services/embeddings';
 import { initWhisper } from '../services/whisper';
 import { initBible } from '../services/bible';
+import { generateRandomHex, encryptData, decryptData } from '../services/crypto';
 import type { UserProfile, Language } from '../types';
 import { SettingsIcon, BackIcon, ShieldIcon, HistoryIcon, DownloadIcon, UploadIcon, LockIcon, CloudIcon, CheckIcon } from '../components/Icons';
 
@@ -77,10 +78,74 @@ export default function Settings() {
 
   const handleForgetEverything = async () => {
     if (confirm('Forget all journal entries? This cannot be undone.')) {
-      // Keep profile, delete entries. For simplicity, just clearing DB entirely for now as requested.
-      indexedDB.deleteDatabase('EmohDB');
-      window.location.reload();
+      await clearAllEntries();
+      setEntryCount(0);
+      alert('All journal entries have been erased.');
     }
+  };
+
+  const handleExport = async () => {
+    if (pinInput.length !== 4) {
+      alert('Please enter a 4-digit PIN first.');
+      return;
+    }
+    try {
+      setStatus('Encrypting backup...');
+      const data = await exportAllData();
+      const jsonString = JSON.stringify(data);
+      const salt = generateRandomHex(16);
+      const { ciphertext, iv } = await encryptData(jsonString, pinInput, salt);
+      
+      const backupObj = { salt, iv, data: ciphertext };
+      const blob = new Blob([JSON.stringify(backupObj)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `emoh_backup_${new Date().toISOString().split('T')[0]}.emoh`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      setStatus('Backup exported successfully.');
+    } catch (e) {
+      console.error(e);
+      setStatus('Failed to export backup.');
+    }
+    setTimeout(() => setStatus(''), 3000);
+  };
+
+  const handleImportClick = () => {
+    if (pinInput.length !== 4) {
+      alert('Please enter your 4-digit PIN first to decrypt the backup.');
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      setStatus('Decrypting backup...');
+      const text = await file.text();
+      const backupObj = JSON.parse(text);
+      if (!backupObj.salt || !backupObj.iv || !backupObj.data) {
+        throw new Error('Invalid backup file format');
+      }
+      
+      const decryptedString = await decryptData(backupObj.data, backupObj.iv, pinInput, backupObj.salt);
+      const data = JSON.parse(decryptedString);
+      
+      await importAllData(data);
+      setStatus('Backup imported successfully. Reloading...');
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      console.error(err);
+      setStatus('Failed to import backup. Incorrect PIN or invalid file.');
+      setTimeout(() => setStatus(''), 3000);
+    }
+    // reset input
+    e.target.value = '';
   };
 
   const handleReloadBrain = async () => {
@@ -252,12 +317,13 @@ export default function Settings() {
                   onChange={e => setPinInput(e.target.value.replace(/\D/g, ''))}
                 />
               </div>
-              <button className="btn btn-secondary flex items-center justify-center gap-2" style={{ flex: 1, padding: '12px' }}>
+              <button className="btn btn-secondary flex items-center justify-center gap-2" style={{ flex: 1, padding: '12px' }} onClick={handleImportClick}>
                 <UploadIcon size={16} />
                 Import backup
               </button>
+              <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept=".emoh" onChange={handleImportFile} />
             </div>
-            <button className="btn btn-secondary flex items-center justify-center gap-2" style={{ padding: '12px' }}>
+            <button className="btn btn-secondary flex items-center justify-center gap-2" style={{ padding: '12px' }} onClick={handleExport}>
               <DownloadIcon size={16} />
               Export encrypted backup
             </button>
