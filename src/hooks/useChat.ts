@@ -49,8 +49,9 @@ export function useChat(profile: UserProfile | null) {
 
     try {
       // 3. RAG Pipeline
+      const queryText = text.trim() || "[User shared an image]";
       const [queryEmbedding, recentMoods] = await Promise.all([
-        embedText(text),
+        embedText(queryText),
         getMoodContext(5)
       ]);
 
@@ -87,7 +88,7 @@ export function useChat(profile: UserProfile | null) {
       ]);
       setMascotState('talking');
 
-      const fullReply = await chatCompletion(systemPrompt, text, (chunk) => {
+      const fullReply = await chatCompletion(systemPrompt, queryText, (chunk) => {
         setMessages(prev => 
           prev.map(m => m.id === emohMsgId ? { ...m, text: chunk } : m)
         );
@@ -102,7 +103,7 @@ export function useChat(profile: UserProfile | null) {
       setMascotState('idle');
 
       // 6. Memory Extraction
-      extractMemory(text, fullReply).then(async (jsonStr) => {
+      extractMemory(queryText, fullReply).then(async (jsonStr) => {
         try {
           const extraction = JSON.parse(jsonStr) as { summary: string, mood: Mood, themes: string[] };
           
