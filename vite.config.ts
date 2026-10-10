@@ -11,7 +11,7 @@ export default defineConfig({
       includeAssets: ['emoh-icon.svg', 'bible.json', 'bible-embeddings.bin'],
       manifest: false, // We have a custom manifest.json in public/
       workbox: {
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB limit for WASM files
+        maximumFileSizeToCacheInBytes: 30 * 1024 * 1024, // 30MB limit for large WASM files (onnxruntime)
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,wasm,bin}']
       }
     })
