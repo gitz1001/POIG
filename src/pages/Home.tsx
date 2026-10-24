@@ -6,10 +6,25 @@ import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
 import { initLLM, unloadLLM } from '../services/llm';
 import { isWhisperReady } from '../services/whisper';
 import { saveProfile } from '../db';
-import { updateFeedback } from '../db';
 import { SAFETY_RESOURCES } from '../services/safety';
-import type { UserProfile, ChatMessage } from '../types';
-import { SettingsIcon, MicIcon, SendIcon, ThumbUpIcon, ThumbDownIcon, ImageIcon } from '../components/Icons';
+import type { UserProfile } from '../types';
+import { SettingsIcon, MicIcon, SendIcon, ThumbUpIcon, ThumbDownIcon, ImageIcon, BookIcon, XIcon } from '../components/Icons';
+
+const DRAFT_KEY = 'emoh-draft';
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+function readDraft(): string {
+  try { return localStorage.getItem(DRAFT_KEY) || ''; } catch { return ''; }
+}
+
+function writeDraft(text: string) {
+  try {
+    if (text) localStorage.setItem(DRAFT_KEY, text);
+    else localStorage.removeItem(DRAFT_KEY);
+  } catch { /* storage unavailable — drafts are a convenience only */ }
+}
+
+const formatElapsed = (secs: number) => `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
 
 interface HomeProps {
   profile: UserProfile;
@@ -26,17 +41,27 @@ const JOURNAL_PROMPTS = [
 ];
 
 export default function Home({ profile }: HomeProps) {
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState(readDraft);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [rantMode, setRantMode] = useState(profile.rantMode);
   const [dailyPrompt, setDailyPrompt] = useState('');
   const navigate = useNavigate();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   
-  const { messages, mascotState, sendMessage, isDeviceLost, setIsDeviceLost } = useChat(profile);
+  const { messages, mascotState, sendMessage, rateMessage, isDeviceLost, setIsDeviceLost } = useChat(profile);
   const { progress, isComplete, loadAll } = useModelLoader();
-  const { isRecording, isTranscribing, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
+
+  // Dictation appends to whatever is already written, like a real dictation key
+  const appendTranscript = (text: string) => {
+    setInputText(prev => (prev.trim() ? `${prev.replace(/\s+$/, '')} ${text}` : text));
+    textareaRef.current?.focus();
+  };
+  const {
+    isRecording, isTranscribing, elapsed, error: voiceError, clearError,
+    startRecording, stopRecording, cancelRecording,
+  } = useVoiceRecorder({ language: profile.language, onTranscript: appendTranscript });
 
   useEffect(() => {
     if (!isComplete) {
@@ -55,16 +80,45 @@ export default function Home({ profile }: HomeProps) {
     }
   }, [messages]);
 
+  // Keep an unsent entry if the tab closes or the user navigates away
+  useEffect(() => { writeDraft(inputText); }, [inputText]);
+
+  // Grow the textarea with its content, up to the CSS max-height
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [inputText]);
+
+  const isBusy = mascotState !== 'idle';
+  const whisperReady = progress[2]?.status === 'ready' || isWhisperReady();
+  const canSend = (inputText.trim() !== '' || selectedImage !== null) && !isBusy && !isRecording && !isTranscribing;
+
   const handleSend = () => {
-    if ((!inputText.trim() && !selectedImage) || !isComplete || mascotState !== 'idle' || isDeviceLost) return;
+    if (!canSend) return;
     sendMessage(inputText, selectedImage || undefined);
     setInputText('');
     setSelectedImage(null);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter sends on desktop; on touch keyboards Enter makes a new paragraph
+    const isTouch = window.matchMedia?.('(pointer: coarse)').matches;
+    if (e.key === 'Enter' && !e.shiftKey && !isTouch && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > MAX_IMAGE_BYTES) {
+      alert('That image is too large (max 8 MB).');
+      e.target.value = '';
+      return;
+    }
     
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -75,22 +129,15 @@ export default function Home({ profile }: HomeProps) {
   };
 
   const handleMicToggle = async () => {
-    if (!isComplete || !isWhisperReady()) return;
+    if (!whisperReady || isTranscribing) return;
     
     if (isRecording) {
-      try {
-        const text = await stopRecording();
-        if (text.trim()) {
-          setInputText(text);
-        }
-      } catch (err) {
-        console.error('Voice recording failed:', err);
-      }
+      stopRecording();
     } else {
       try {
         await startRecording();
       } catch (err) {
-        console.error('Mic access denied:', err);
+        console.error('Mic access failed:', err);
       }
     }
   };
@@ -104,17 +151,6 @@ export default function Home({ profile }: HomeProps) {
   const toggleRantMode = async (mode: boolean) => {
     setRantMode(mode);
     await saveProfile({ ...profile, rantMode: mode });
-  };
-
-  const handleFeedback = async (msg: ChatMessage, score: number) => {
-    // Update in DB if the entry exists
-    if (msg.id) {
-      try {
-        await updateFeedback(parseInt(msg.id), score);
-      } catch (e) {
-        // Entry may not exist yet (extracted async), that's ok
-      }
-    }
   };
 
   const llmProgress = progress.find(p => p.status === 'downloading') || progress[0];
@@ -132,15 +168,20 @@ export default function Home({ profile }: HomeProps) {
       <div className="app" style={{ overflow: 'hidden' }}>
         <div className="topbar">
           <div className="glass pill"><span className="dot"></span>Offline · Local only</div>
-          <button className="glass pill" onClick={() => navigate('/settings')}>
-            <SettingsIcon size={18} />
-          </button>
+          <div className="flex gap-2">
+            <button className="glass pill" onClick={() => navigate('/journal')} title="My journal" aria-label="My journal">
+              <BookIcon size={18} />
+            </button>
+            <button className="glass pill" onClick={() => navigate('/settings')} title="Settings" aria-label="Settings">
+              <SettingsIcon size={18} />
+            </button>
+          </div>
         </div>
         
         <div className="stage" style={{ minHeight: 0 }}>
           {/* Mascot — smaller when chat is active */}
           <svg 
-            className={`emoh ${mascotState !== 'idle' ? mascotState : ''}`} 
+            className={`emoh ${isRecording ? 'listening' : mascotState !== 'idle' ? mascotState : ''}`} 
             viewBox="0 0 200 200"
             style={hasMessages ? { width: 'min(35vw, 140px)' } : undefined}
           >
@@ -179,6 +220,7 @@ export default function Home({ profile }: HomeProps) {
               ) : isEngineLoading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <span style={{ opacity: 0.7 }}>Emoh's brain is still loading...</span>
+                  <span style={{ fontSize: '14px', opacity: 0.6, marginTop: '4px' }}>You can already write. Entries are saved right away.</span>
                   <span style={{ fontSize: '12px', opacity: 0.5, marginTop: '4px', fontFamily: 'monospace' }}>
                     {llmProgress?.status === 'downloading' 
                       ? `Downloading ${llmProgress.modelName} ${llmProgress.progress}%` 
@@ -213,7 +255,7 @@ export default function Home({ profile }: HomeProps) {
               )}
 
               {messages.map((msg) => (
-                <div key={msg.id} className={`chat-bubble ${msg.role === 'user' ? 'user' : 'emoh'}`}>
+                <div key={msg.id} className={`chat-bubble ${msg.role === 'user' ? 'user' : 'emoh'}${msg.isNotice ? ' notice' : ''}`}>
                   {msg.image && (
                     <img 
                       src={msg.image} 
@@ -222,6 +264,13 @@ export default function Home({ profile }: HomeProps) {
                     />
                   )}
                   {msg.text || (msg.role === 'emoh' ? '...' : '')}
+
+                  {msg.role === 'user' && (
+                    <div className="bubble-meta">
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {msg.entryId !== undefined && ' · saved'}
+                    </div>
+                  )}
                   
                   {/* Bible verses — Task 2.2 */}
                   {msg.bibleVerses && msg.bibleVerses.length > 0 && (
@@ -252,18 +301,18 @@ export default function Home({ profile }: HomeProps) {
                   )}
 
                   {/* Feedback buttons — Task 2.4 */}
-                  {msg.role === 'emoh' && msg.text && !msg.isSafetyResponse && (
+                  {msg.role === 'emoh' && msg.text && !msg.isSafetyResponse && !msg.isNotice && mascotState !== 'talking' && (
                     <div className="feedback-row">
                       <button 
                         className={`feedback-btn ${msg.feedbackScore === 1 ? 'active-up' : ''}`}
-                        onClick={() => handleFeedback(msg, 1)}
+                        onClick={() => rateMessage(msg.id, 1)}
                         title="Helpful"
                       >
                         <ThumbUpIcon size={14} />
                       </button>
                       <button 
                         className={`feedback-btn ${msg.feedbackScore === -1 ? 'active-down' : ''}`}
-                        onClick={() => handleFeedback(msg, -1)}
+                        onClick={() => rateMessage(msg.id, -1)}
                         title="Not helpful"
                       >
                         <ThumbDownIcon size={14} />
@@ -281,6 +330,29 @@ export default function Home({ profile }: HomeProps) {
           <button className={!rantMode ? 'on' : ''} onClick={() => toggleRantMode(false)}>Help me</button>
         </div>
         
+        {(isRecording || isTranscribing || voiceError) && (
+          <div className="voice-status" role="status">
+            {isRecording && (
+              <>
+                <span className="rec-dot" />
+                <span>Listening… {formatElapsed(elapsed)}</span>
+                <button className="voice-cancel" onClick={cancelRecording} title="Discard recording" aria-label="Discard recording">
+                  <XIcon size={14} />
+                </button>
+              </>
+            )}
+            {isTranscribing && <span>Turning your voice into text…</span>}
+            {!isRecording && !isTranscribing && voiceError && (
+              <>
+                <span>{voiceError}</span>
+                <button className="voice-cancel" onClick={clearError} aria-label="Dismiss">
+                  <XIcon size={14} />
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
         <div className="glass inputbar" style={{ flexWrap: 'wrap' }}>
           {selectedImage && (
             <div style={{ width: '100%', padding: '0 8px 8px', position: 'relative' }}>
@@ -291,18 +363,22 @@ export default function Home({ profile }: HomeProps) {
               />
               <button 
                 onClick={() => setSelectedImage(null)}
+                aria-label="Remove image"
                 style={{ position: 'absolute', top: '-4px', left: '60px', background: '#ff4444', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 ×
               </button>
             </div>
           )}
-          <input 
-            placeholder={isEngineLoading ? "Loading..." : isTranscribing ? "Transcribing..." : "Rant to me…"}
+          <textarea 
+            ref={textareaRef}
+            rows={1}
+            placeholder={isTranscribing ? "Transcribing..." : isRecording ? "Listening..." : "Write or dictate what's on your mind…"}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            disabled={mascotState !== 'idle' || isEngineLoading || isTranscribing}
+            onKeyDown={handleKeyDown}
+            disabled={isTranscribing}
+            aria-label="Journal entry"
           />
           
           <input 
@@ -315,22 +391,25 @@ export default function Home({ profile }: HomeProps) {
           
           <button 
             className="mic" 
-            disabled={isEngineLoading || isTranscribing || mascotState !== 'idle'}
+            disabled={isBusy || isRecording || isTranscribing}
             onClick={() => fileInputRef.current?.click()}
             title="Attach Image"
+            aria-label="Attach image"
           >
             <ImageIcon size={20} />
           </button>
 
           <button 
             className={`mic ${isRecording ? 'listening' : ''}`} 
-            disabled={isEngineLoading || !isWhisperReady() || isTranscribing}
+            disabled={!whisperReady || isTranscribing}
             onClick={handleMicToggle}
-            title={isRecording ? 'Stop recording' : 'Start voice input'}
+            title={!whisperReady ? 'Voice model is still loading' : isRecording ? 'Stop and transcribe' : 'Dictate'}
+            aria-label={isRecording ? 'Stop and transcribe' : 'Dictate'}
+            aria-pressed={isRecording}
           >
             <MicIcon size={20} />
           </button>
-          <button className="send" onClick={handleSend} disabled={(!inputText.trim() && !selectedImage) || mascotState !== 'idle' || isEngineLoading}>
+          <button className="send" onClick={handleSend} disabled={!canSend} title="Save entry" aria-label="Save entry">
             <SendIcon size={18} />
           </button>
         </div>

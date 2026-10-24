@@ -45,8 +45,20 @@ body { margin:0; font-family:'Outfit',sans-serif; color:var(--ink); overflow:hid
 .toggle button.on { background:rgba(255,255,255,.85); box-shadow:0 2px 8px rgba(120,90,200,.2); }
 
 .inputbar { width:100%; display:flex; align-items:center; gap:8px; padding:8px; margin-bottom:8px; }
-.inputbar input { flex:1; border:0; outline:0; background:transparent; font:inherit; font-size:16px;
-  padding:10px 14px; color:var(--ink); }
+.inputbar { align-items:flex-end; border-radius:28px; }
+.inputbar textarea { flex:1; min-width:0; border:0; outline:0; background:transparent; font:inherit; font-size:16px;
+  padding:13px 14px; color:var(--ink); resize:none; line-height:1.4; max-height:40vh; overflow-y:auto;
+  align-self:center; box-sizing:border-box; }
+.inputbar textarea::placeholder { color:var(--ink); opacity:.5; }
+.mic:disabled, .send:disabled { opacity:.45; cursor:not-allowed; }
+
+/* Dictation status strip */
+.voice-status { width:100%; display:flex; align-items:center; gap:8px; justify-content:center;
+  font-size:13px; padding:6px 12px; margin-bottom:6px; box-sizing:border-box; }
+.rec-dot { width:10px; height:10px; border-radius:50%; background:#ef4444; animation: blink 1s ease-in-out infinite; }
+@keyframes blink { 50% { opacity:.3; } }
+.voice-cancel { border:0; background:rgba(255,255,255,.6); color:var(--ink); width:24px; height:24px;
+  border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 .mic { width:52px;height:52px;border-radius:50%;border:0;cursor:pointer;color:#fff;
   background:linear-gradient(135deg,#a98bff,#ff8fc4); box-shadow:0 6px 20px rgba(169,139,255,.5); display: flex; align-items: center; justify-content: center; font-size: 20px; }
 .mic.listening { animation: ring 1.4s ease-out infinite; }
@@ -60,6 +72,7 @@ body { margin:0; font-family:'Outfit',sans-serif; color:var(--ink); overflow:hid
 
 .panel {
   width: 100%;
+  box-sizing: border-box;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -167,8 +180,12 @@ body { margin:0; font-family:'Outfit',sans-serif; color:var(--ink); overflow:hid
   font-size: 15px;
   line-height: 1.45;
   word-break: break-word;
+  white-space: pre-wrap;
   animation: slideUp 0.3s ease-out;
 }
+
+.chat-bubble .bubble-meta { font-size: 11px; opacity: .55; margin-top: 4px; text-align: right; white-space: normal; }
+.chat-bubble.notice { font-size: 13px; font-style: italic; opacity: .8; }
 
 .chat-bubble.user {
   align-self: flex-end;

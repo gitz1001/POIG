@@ -57,6 +57,27 @@ export async function getAllEntries(): Promise<JournalEntry[]> {
 }
 
 /**
+ * Update fields on an existing entry.
+ */
+export async function updateEntry(entryId: number, changes: Partial<JournalEntry>): Promise<void> {
+  await db.entries.update(entryId, changes);
+}
+
+/**
+ * Delete a single journal entry.
+ */
+export async function deleteEntry(entryId: number): Promise<void> {
+  await db.entries.delete(entryId);
+}
+
+/**
+ * Get entries written at or after a timestamp, oldest first.
+ */
+export async function getEntriesSince(timestamp: number): Promise<JournalEntry[]> {
+  return db.entries.where('timestamp').aboveOrEqual(timestamp).sortBy('timestamp');
+}
+
+/**
  * Clear all journal entries while keeping the profile intact.
  */
 export async function clearAllEntries(): Promise<void> {

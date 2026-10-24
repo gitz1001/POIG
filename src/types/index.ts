@@ -23,6 +23,7 @@ export interface JournalEntry {
   embedding: number[];      // 384-dim MiniLM embedding of userText
   feedbackScore: number;    // +1 thumbs up, -1 thumbs down, 0 = no feedback
   image?: string;           // Base64 image attachment
+  editedAt?: number;        // Unix ms of the last manual edit
 }
 
 /** Bible verse from /public/bible.json */
@@ -60,6 +61,8 @@ export interface ChatMessage {
   image?: string;
   bibleVerses?: BibleVerse[];
   isSafetyResponse?: boolean;
+  entryId?: number;          // Journal entry this message belongs to
+  isNotice?: boolean;        // Status note from the app, not an AI reply
 }
 
 /** Model download progress */

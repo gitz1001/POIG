@@ -12,34 +12,36 @@ env.allowLocalModels = false; // We use Hugging Face Hub (remote download) then 
 const MODEL_ID = 'Xenova/all-MiniLM-L6-v2';
 
 let extractor: FeatureExtractionPipeline | null = null;
-let isLoading = false;
+let loadingPromise: Promise<void> | null = null;
 
 /**
  * Initialize the embeddings model.
  * Downloads the ONNX model files and caches them via Service Worker / OPFS.
+ * Concurrent callers share the same in-flight load instead of returning early.
  */
 export async function initEmbeddings(
   onProgress?: (info: { file: string; progress: number; status: string }) => void
 ): Promise<void> {
-  if (extractor || isLoading) return;
-  isLoading = true;
+  if (extractor) return;
+  if (loadingPromise) return loadingPromise;
 
-  try {
+  loadingPromise = (async () => {
     // Pipeline for feature extraction (embeddings)
     extractor = await pipeline('feature-extraction', MODEL_ID, {
-      progress_callback: (x) => {
+      progress_callback: (x: any) => {
         if (onProgress && x.status === 'progress' && typeof x.progress === 'number') {
           onProgress({ file: x.file || 'model', progress: x.progress, status: x.status });
         }
       },
       device: 'wasm'
     });
-  } catch (err) {
-    isLoading = false;
-    throw err;
-  }
+  })();
 
-  isLoading = false;
+  try {
+    await loadingPromise;
+  } finally {
+    loadingPromise = null;
+  }
 }
 
 export function isEmbeddingsReady(): boolean {

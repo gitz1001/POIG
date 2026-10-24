@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProfile, saveProfile, getAllEntries, clearAllEntries, exportAllData, importAllData } from '../db';
-import { initLLM, unloadLLM } from '../services/llm';
-import { initEmbeddings } from '../services/embeddings';
-import { initWhisper } from '../services/whisper';
+import { initLLM, unloadLLM, isLLMReady } from '../services/llm';
+import { initEmbeddings, isEmbeddingsReady } from '../services/embeddings';
+import { initWhisper, isWhisperReady } from '../services/whisper';
 import { initBible } from '../services/bible';
 import { generateRandomHex, encryptData, decryptData } from '../services/crypto';
 import type { UserProfile, Language } from '../types';
@@ -38,11 +38,10 @@ export default function Settings() {
       const entries = await getAllEntries();
       setEntryCount(entries.length);
 
-      // Check brains (simplified check)
       setBrainStatus({
-        llm: globalThis.__emohEngine ? 'ready' : 'retry',
-        memory: 'ready',
-        ears: 'ready',
+        llm: isLLMReady() ? 'ready' : 'not loaded',
+        memory: isEmbeddingsReady() ? 'ready' : 'not loaded',
+        ears: isWhisperReady() ? 'ready' : 'not loaded',
         bible: 'ready'
       });
 
@@ -374,11 +373,17 @@ export default function Settings() {
               </div>
               <div className="flex justify-between">
                 <span>Memory Embeddings</span>
-                <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><CheckIcon size={14} />ready</span>
+                <span style={{ color: brainStatus.memory === 'ready' ? '#10b981' : '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {brainStatus.memory === 'ready' && <CheckIcon size={14} />}
+                  {brainStatus.memory}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Ears (Whisper)</span>
-                <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><CheckIcon size={14} />ready</span>
+                <span style={{ color: brainStatus.ears === 'ready' ? '#10b981' : '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {brainStatus.ears === 'ready' && <CheckIcon size={14} />}
+                  {brainStatus.ears}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Bible Data</span>

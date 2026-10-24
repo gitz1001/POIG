@@ -125,3 +125,24 @@ export const ImageIcon = (props: IconProps) => (
     <polyline points="21 15 16 10 5 21" />
   </BaseIcon>
 );
+
+export const BookIcon = (props: IconProps) => (
+  <BaseIcon {...props}>
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </BaseIcon>
+);
+
+export const XIcon = (props: IconProps) => (
+  <BaseIcon {...props}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </BaseIcon>
+);
+
+export const EditIcon = (props: IconProps) => (
+  <BaseIcon {...props}>
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+  </BaseIcon>
+);
