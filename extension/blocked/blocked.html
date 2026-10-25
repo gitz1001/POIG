@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Stay with it — Emoh Focus</title>
+  <link rel="stylesheet" href="../ui.css">
+  <style>
+    body { min-height: 100vh; display: grid; place-items: center; text-align: center; padding: 16px; }
+    img { width: 120px; animation: breathe 8s ease-in-out infinite; }
+    @keyframes breathe { 50% { transform: scale(1.15); } }
+    @media (prefers-reduced-motion: reduce) { img { animation: none; } }
+    #left { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="../icons/icon128.png" alt="Emoh">
+    <h1>This site can wait. You've got this.</h1>
+    <p class="muted">Breathe in as Emoh grows, out as it shrinks.</p>
+    <p id="left"></p>
+  </main>
+  <script type="module" src="blocked.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Emoh Focus</title>
+  <link rel="stylesheet" href="../ui.css">
+  <style>
+    body { width: 320px; padding: 12px; }
+    .moods button { font-size: 20px; padding: 4px 8px; flex: 1; }
+    .moods button.picked { border-color: var(--accent); }
+    #timer { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <header class="row spread card">
+    <div class="row"><img src="../icons/icon32.png" alt="" width="24" height="24"><h1>Emoh Focus</h1></div>
+    <span id="plan" class="badge" hidden>PRO</span>
+  </header>
+
+  <section class="card">
+    <h2>How are you feeling?</h2>
+    <div class="row moods" id="moods">
+      <button data-score="1" title="Awful">😞</button>
+      <button data-score="2" title="Meh">😕</button>
+      <button data-score="3" title="Okay">😐</button>
+      <button data-score="4" title="Good">🙂</button>
+      <button data-score="5" title="Great">😄</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Focus session</h2>
+    <div id="idle" class="row">
+      <select id="minutes"></select>
+      <button id="start" class="primary">Start focus</button>
+    </div>
+    <div id="running" class="row spread" hidden>
+      <span id="timer">00:00</span>
+      <button id="stop">Stop</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Blocked during focus <span id="count" class="muted"></span></h2>
+    <form id="add-form" class="row">
+      <input id="site" placeholder="e.g. youtube.com" autocomplete="off">
+      <button type="submit">Add</button>
+    </form>
+    <p id="error" class="error"></p>
+    <ul id="sites"></ul>
+  </section>
+
+  <div class="row spread">
+    <a href="../options/options.html" target="_blank" class="muted">Mood history</a>
+    <button id="upgrade" class="pro">Go Pro</button>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

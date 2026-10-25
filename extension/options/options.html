@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Emoh Focus — Mood history</title>
+  <link rel="stylesheet" href="../ui.css">
+  <style>
+    body { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+    .bars { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
+    .bar { flex: 1; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
+  </style>
+</head>
+<body>
+  <section class="card">
+    <div class="row spread">
+      <h1>Mood history</h1>
+      <span id="plan" class="badge" hidden>PRO</span>
+    </div>
+    <p id="summary" class="muted"></p>
+    <div id="bars" class="bars" role="img" aria-label="Average mood per day"></div>
+  </section>
+
+  <section class="card row spread">
+    <span>Export your check-ins as CSV</span>
+    <button id="export">Export CSV</button>
+  </section>
+
+  <!-- DEV ONLY: remove before publishing to the Chrome Web Store. -->
+  <section class="card row spread">
+    <label><input type="checkbox" id="dev-pro"> Simulate Pro (developer testing)</label>
+  </section>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
